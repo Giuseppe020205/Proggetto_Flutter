@@ -1,0 +1,22 @@
+{
+  "tracker_titolo": "Calorie Tracker",
+  "home": "Home",
+  "user": "Profilo",
+  "email": "Email",
+  "nome": "Nome",
+  "eta": "Età",
+  "peso": "Peso (Kg)",
+  "altezza": "Altezza (cm)",
+  "genere": "Genere",
+  "obbiettivo": "Obiettivo",
+  "attivita": "Livello di Attività",
+  "registrazione": "Registrati",
+  "accedi": "Accedi",
+  "aggiungi_nuovo": "Aggiungi nuovo alimento",
+  "titolo_consumati": "Alimenti consumati oggi",
+  "nessun_consumato": "Ancora nessun alimento aggiunto.",
+  "calorie_bruciate": "kcal bruciate",
+  "passi": "passi",
+  "obbiettivo_raggiunto": "Obiettivo raggiunto!",
+  "inserire_email_password": "inserisci email e password per accedere"
+}
