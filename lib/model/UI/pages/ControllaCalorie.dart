@@ -1,4 +1,4 @@
-// lib/UI/pages/ControllaCalorie.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -55,8 +55,8 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("logout_titolo".tr()), // Esempio: "Sei sicuro?"
-          content: Text("logout_messaggio".tr()), // Esempio: "Vuoi davvero uscire?"
+          title: Text("logout_titolo".tr()),
+          content: Text("logout_messaggio".tr()),
           actions: [
             // TASTO PER TORNARE INDIETRO
             TextButton(
@@ -66,11 +66,11 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
             // TASTO PER USCIRE DEFINITIVAMENTE
             TextButton(
               onPressed: () async {
-                // 1. Puliamo la sessione
+
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
-                // 2. Navigazione di sicurezza (chiudiamo tutto)
+                // 2.NAVIGAZIONE DI SICUREZZA
                 if (!context.mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
@@ -89,7 +89,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
       },
     );
   }
-  @override
+
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Model>(context);
@@ -102,7 +102,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
 
-      // --- MENU LATERALE DESTRO (endDrawer) ---
+      // MENU LATERALE DESTRO
       endDrawer: Drawer(
         child: Column(
           children: [
@@ -113,21 +113,18 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                     style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
               ),
             ),
-            // Cambio Lingua
+            // CAMBIO DI LINGUA
             ListTile(
-              leading: const Icon(Icons.language, color: Colors.deepPurple),
-              title: Text("lingua".tr()),
-              trailing: Text(context.locale.languageCode.toUpperCase()),
+              leading: const Icon(Icons.language,color: Colors.deepPurple,),
+              title: Text(context.locale.languageCode == 'it' ? "Italiano" : "English"),
               onTap: () {
-                context.setLocale(context.locale.languageCode == 'it'
-                    ? const Locale('en')
-                    : const Locale('it'));
+                context.setLocale(context.locale.languageCode == 'it' ? const Locale('en') : const Locale('it'));
+                Navigator.pop(context);
               },
             ),
-            // Cambio Tema
+            // CAMBIO TEMA
             SwitchListTile(
-              secondary: Icon(
-                widget.tema == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+              secondary: Icon( widget.tema == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
                 color: Colors.deepPurple,
               ),
               title: Text("tema_scuro".tr()),
@@ -136,13 +133,13 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
             ),
             const Spacer(),
             const Divider(),
-            // Logout
+            // LOGOUT
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: Text("esci".tr(), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               onTap: () {
-                Navigator.pop(context); // Chiude il menu prima del dialog
-                effettuaLogout(context); // Chiama la funzione di logout con conferma
+                Navigator.pop(context);
+                effettuaLogout(context);
               },
             ),
             const SizedBox(height: 20),
@@ -152,7 +149,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
 
       body: Column(
         children: [
-          // Intestazione Viola
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 45, bottom: 20),
@@ -167,7 +164,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
               children: [
                 Center(
                   child: Text(
-                    "diet_app_title".tr(),
+                    "titolo".tr(),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -175,7 +172,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                     ),
                   ),
                 ),
-                // ICONA MENU A DESTRA (Apre l'endDrawer)
+                // ICONA MENU A DESTRA
                 Align(
                   alignment: Alignment.topRight,
                   child: Padding(
@@ -194,7 +191,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
 
           const SizedBox(height: 20),
 
-          // Sezione Calorie
+          // SEZIONE CALORIE
           Column(
             children: [
               IndicatoreCalorieAnimato(
@@ -213,9 +210,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
           ),
 
           const SizedBox(height: 15),
-
-          // --- WIDGET CONTAPASSI ---
-          // --- WIDGET CONTAPASSI CON LIVELLO ATTIVITÀ ---
+          //  WIDGET CONTAPASSI CON LIVELLO ATTIVITÀ
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Card(
@@ -233,17 +228,17 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                           children: [
                             const Icon(Icons.directions_walk, color: Colors.deepPurple),
                             const SizedBox(width: 8),
-                            Text("passi_oggi".tr(),
+                            Text("passi".tr(),
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
-                        // Visualizza i passi attuali rispetto al target
-                        Text("${model.passi} / 10000",
+                        // VISUALIZZA I PASSI ATTUALI
+                        Text("${model.passi} ",
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
                       ],
                     ),
                     const SizedBox(height: 15),
-                    // Barra di progresso
+                    // BARRA DI PROGRESSO
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
@@ -267,7 +262,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            "${model.nomeLivelloAttivita }", // Mostra il valore numerico
+                            "${model.nomeLivelloAttivita }",
                             style: const TextStyle(
                                 color: Colors.deepPurple,
                                 fontWeight: FontWeight.bold,
@@ -285,8 +280,8 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
 
           const SizedBox(height: 10),
 
-          // Lista dei prodotti consumati
-          Expanded( // Ho cambiato SizedBox con Expanded per gestire meglio lo spazio
+          // LISTA PRODOTTI CONSUMATI
+          Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: model.prodottiConsumati.length,
@@ -309,7 +304,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
             ),
           ),
 
-          // Tasto Aggiungi Prodotto
+          // TASTO AGGIUNGI PRODOTTO
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
@@ -322,7 +317,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   ),
-                  child: Text("aggiungi_prodotto".tr()),
+                  child: Text("aggiungi_nuovo".tr()),
                 )
             ),
           ),
@@ -331,7 +326,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
     );
   }
 }
-// --- NUOVO WIDGET ANIMATO BASATO SUL FILE PDF ---
+
 
 class IndicatoreCalorieAnimato extends StatefulWidget {
   final int obiettivo;
@@ -343,21 +338,21 @@ class IndicatoreCalorieAnimato extends StatefulWidget {
   State<IndicatoreCalorieAnimato> createState() => _IndicatoreCalorieAnimatoState();
 }
 
-// Implementazione con TickerProviderStateMixin come richiesto [cite: 4, 5]
+
 class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> with TickerProviderStateMixin {
-  late AnimationController _controller; // [cite: 6]
-  late Animation<double> _progressoAnimation; // [cite: 7]
+  late AnimationController _controller;
+  late Animation<double> _progressoAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Inizializzazione del controller con durata di 700ms [cite: 12]
+    // INIZIALIZAZIONE DEL CONTROLLER CON DURATA
     _controller = AnimationController(
       vsync: this, // [cite: 12]
       duration: const Duration(milliseconds: 700),
     );
 
-    // Definizione dell'animazione curva [cite: 30]
+    // DEFINIZIONE DELL' ANIMAZIONE
     _progressoAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
@@ -376,7 +371,7 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
 
   void _aggiornaAnimazione() {
     double valoreTarget = (widget.consumate / widget.obiettivo).clamp(0.0, 1.0);
-    _controller.animateTo(valoreTarget); // Attivazione dell'animazione
+    _controller.animateTo(valoreTarget);
   }
 
   @override
@@ -392,8 +387,6 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
       builder: (context, child) {
         double valore = _progressoAnimation.value;
 
-        // Logica Colori richiesta:
-        // Rosso <= 50% | Arancione < 100% | Verde >= 100%
         Color coloreIndicatore;
         if (valore <= 0.5) {
           coloreIndicatore = Colors.red;
@@ -402,7 +395,6 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
         } else {
           coloreIndicatore = Colors.green;
         }
-
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -416,7 +408,6 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
                 color: Colors.deepPurple,
               ),
             ),
-            // Parte animata
             SizedBox(
               width: 150,
               height: 150,
@@ -427,7 +418,7 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
                 valueColor: AlwaysStoppedAnimation<Color>(coloreIndicatore),
               ),
             ),
-            // Percentuale centrale
+            // PERCENTUALE CENTRALE
             Text(
               "${(valore * 100).toInt()}%",
               style: const TextStyle(

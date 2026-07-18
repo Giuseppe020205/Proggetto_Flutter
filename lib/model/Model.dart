@@ -72,7 +72,7 @@ class Model extends ChangeNotifier {
   void setPassi(int nuoviPassi) {
     _passi = nuoviPassi;
 
-    // IMPORTANTE: Qui puoi integrare la logica che cambia il livello di attività
+
     if (userData != null) {
       if (_passi > 10000) {
         userData!.livelloAttivita = 1.7; // Diventa "Attivo"

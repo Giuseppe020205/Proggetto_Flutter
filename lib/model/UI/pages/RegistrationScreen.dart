@@ -1,10 +1,8 @@
 
-
 import 'dart:developer';
 import 'package:diet_app/model/UI/pages/ControllaCalorie.dart';
 import "package:shared_preferences/shared_preferences.dart";
 import 'package:diet_app/model/Model.dart';
-
 import 'package:diet_app/model/managers/DatabaseAlimenti.dart';
 import 'package:diet_app/model/objects/Enums.dart';
 import 'package:diet_app/model/objects/UserData.dart';
@@ -24,7 +22,7 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  // Controller per i campi di testo (più stabili di semplici stringhe)
+  //CONTROLLER PER I CAMPI DI TESTO
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nomeController = TextEditingController();
@@ -42,18 +40,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final List<String> opzioniObbiettivo = ['guadagnare_peso', 'perdere_peso', 'mantenere_peso'];
   final List<String> opzioniAttivita = ['sedentario', 'moderato', 'attivo'];
 
-  // Funzione per validare e salvare
+  // FUNZIONE PER VALIDARE E SALVARE
   void salvaECalcola(BuildContext context) async {
     final model = Provider.of<Model>(context, listen: false);
 
-    // Validazione base
-    if (_emailController.text.isEmpty || _passwordController.text.length < 6) {
+    // VALIDAZIONE BASE
+    final passwordPattern=RegExp(r'^[A-Z](?=.*[0-9])(?=.*[@])(?=.*\.(com|it|net)$)');
+    if (_emailController.text.isEmpty || _passwordController.text.length < 6 || passwordPattern.hasMatch(_passwordController.text)) {
       _mostraErrore("err_generico".tr());
       return;
     }
 
     try {
-      // 1. Salvataggio su Database reale
+      // SALVATAGGIO SU DATABASE
       await DatabaseAlimenti.registraNuovoUtente(
         email: _emailController.text,
         nome: _nomeController.text,
@@ -66,7 +65,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         obbiettivo: obbiettivoSelezionato.toString()
       );
 
-      // 2. Creazione oggetto utente per il Modello
+      // CREAZIONE OGGETTO UTENTE
       final nuovoUtente = UserData(
         email: _emailController.text,
         nome: _nomeController.text,
@@ -78,14 +77,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         obbiettivo: obbiettivoSelezionato,
       );
 
-      // 3. Aggiorna lo stato globale ( Singleton )
+
       model.updateUserData(nuovoUtente);
 
-      // 4. Salva sessione locale
+      // SALVA SESSIONE LOCALE
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('is_logged_in', true);
 
-      // 5. NAVIGAZIONE: Andiamo al Layout che contiene le calorie
+      // 5. NAVIGAZIONE
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => ControllaCalorie(
@@ -100,30 +99,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _mostraErrore("Errore durante il salvataggio");
     }
   }
-  // Nuova funzione per gestire il login
+  // FUNZIONE PER GESTIRE IL LOGIN
   void effettuaLogin(BuildContext context) async {
     final model = Provider.of<Model>(context, listen: false);
     final String email = _emailController.text.trim();
     final String password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      _mostraErrore("inserire_email_password".tr()); // Assicurati di avere la chiave nel JSON
+      _mostraErrore("inserire_email_password".tr());
       return;
     }
 
     try {
-      // 1. Chiamata al database per verificare le credenziali
+      //VERIFICA DATABASE
       final UserData? utenteEsistente = await DatabaseAlimenti.loginUtente(email, password);
 
       if (utenteEsistente != null) {
-        // 2. Aggiorna il Modello globale (Singleton) con i dati recuperati dal DB
+
         model.updateUserData(utenteEsistente);
 
-        // 3. Salva la sessione locale
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('is_logged_in', true);
         await prefs.setString('user_email', _emailController.text.trim());
-        if (!mounted) return; // Sicurezza per evitare errori se il widget è rimosso
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => ControllaCalorie(
@@ -148,32 +147,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Usiamo i tuoi colori originali
     const Color YellowT = Color(0xFFFFEB3B);
     bool scuro = widget.tema == ThemeMode.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('registrazione').tr(),
-        // Spostiamo il cambio tema e lingua nel Drawer come nel tuo codice
+
       ),
       endDrawer: _buildDrawer(context, scuro),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _emailController, decoration: InputDecoration(labelText: 'email'.tr())),
-            TextField(controller: _passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
-            TextField(controller: _nomeController, decoration: InputDecoration(labelText: 'nome'.tr())),
+            TextFormField(controller: _emailController,keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'email'.tr(),prefixIcon: const Icon(Icons.email_outlined),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),
+            const SizedBox(height: 10,),
+            TextFormField(controller: _passwordController, decoration: InputDecoration(labelText: 'password'.tr(),prefixIcon: const Icon(Icons.password_outlined),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),
+            const SizedBox(height: 10,),
+            TextFormField(controller: _nomeController, decoration: InputDecoration(labelText: 'nome'.tr(),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),
+
 
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: TextField(controller: _etaController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'eta'.tr()))),
+                Expanded(child: TextFormField(controller: _emailController,keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'email'.tr(),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),),
+                  const SizedBox(width: 8),
+                Expanded(child: TextFormField(controller: _emailController,keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'email'.tr(),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),),
                 const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _pesoController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'peso'.tr()))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _altezzaController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'altezza'.tr()))),
+                Expanded(child: TextFormField(controller: _emailController,keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'email'.tr(),filled: true,fillColor: Colors.white,border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.yellow)),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),borderSide: BorderSide(color: Colors.deepPurpleAccent))),),),
               ],
             ),
 
@@ -241,7 +241,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           items: opzioniObbiettivo.map((e) => DropdownMenuItem(value: e, child: Text(e).tr())).toList(),
           onChanged: (val) => setState(() {
             selectionOptionObbiettivo = val!;
-            obbiettivoSelezionato = (val == 'guadagnare_peso') ? TipoObbiettivo.GUADAGNARE_PESO : (val == 'perdere_peso' ? TipoObbiettivo.PERDERE_PESO : TipoObbiettivo.MANTENERE_PESO);
+            obbiettivoSelezionato = (val == 'guadagnare_peso'.tr()) ? TipoObbiettivo.GUADAGNARE_PESO : (val == 'perdere_peso'.tr() ? TipoObbiettivo.PERDERE_PESO : TipoObbiettivo.MANTENERE_PESO);
           }),
         ),
         const SizedBox(height: 15),
@@ -251,7 +251,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           items: opzioniAttivita.map((e) => DropdownMenuItem(value: e, child: Text(e).tr())).toList(),
           onChanged: (val) => setState(() {
             selectionOptionAttivita = val!;
-            laf = (val == 'sedentario') ? 1.2 : (val == 'moderato' ? 1.55 : 1.725);
+            laf = ((val== "sedentario".tr()) ? 1.2 : (val== "moderato".tr()) ? 1.55 : 1.725);
           }),
         ),
       ],
@@ -268,8 +268,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: Center(child: const Text("Impostazioni", style: TextStyle(color: Colors.white, fontSize: 20)).tr()),
           ),
           ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(context.locale.languageCode == 'it' ? "English" : "Italiano"),
+            leading: const Icon(Icons.language,color: Colors.deepPurple,),
+            title: Text(context.locale.languageCode == 'it' ? "Italiano" : "English",),
             onTap: () {
               context.setLocale(context.locale.languageCode == 'it' ? const Locale('en') : const Locale('it'));
               Navigator.pop(context);
@@ -277,7 +277,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
           SwitchListTile(
             title: const Text("tema_scuro").tr(),
-            secondary: Icon(scuro ? Icons.dark_mode : Icons.light_mode),
+            secondary: Icon(widget.tema == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+              color: Colors.deepPurple,),
             value: scuro,
             onChanged: (val) => widget.cambiatema(val),
           ),
