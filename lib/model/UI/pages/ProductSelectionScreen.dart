@@ -16,6 +16,64 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
   String _query = "";
   bool _loading = true;
 
+  void _mostraDialogGrammi(Prodotto prodotto) {
+    final TextEditingController controllerGrammi = TextEditingController(text: "100");
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(prodotto.nome),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Inserisci la quantità in grammi:"),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controllerGrammi,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: "Grammi (g)",
+                  suffixText: "g",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text("Annulla"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final double? grammi = double.tryParse(controllerGrammi.text);
+                if (grammi != null && grammi > 0) {
+                  // 1. Calcoliamo le calorie proporzionate ai grammi
+                  final int calorieCalcolate = ((prodotto.calorie * grammi) / 100).round();
+
+                  // 2. Creiamo un nuovo Prodotto con i dati aggiornati
+                  final prodottoConGrammi = Prodotto(
+                    id: prodotto.id,
+                    nome: "${prodotto.nome} (${grammi.toInt()}g)", // es: "Mela (150g)"
+                    calorie: calorieCalcolate,
+                  );
+
+                  // 3. Chiudiamo il dialog
+                  Navigator.of(dialogContext).pop();
+
+                  // 4. Ritorniamo il Prodotto aggiornato alla schermata precedente
+                  Navigator.of(context).pop(prodottoConGrammi);
+                }
+              },
+              child: const Text("Aggiungi"),
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -199,9 +257,14 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
                     style: TextStyle(color: Colors.amber[600]),
                   ),
                   // Icona di aggiunta modificata in colore verde
-                  trailing: const Icon(Icons.add_circle_outline, color: Colors.green),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                    onPressed: () {
+                      _mostraDialogGrammi(p);
+                    },
+                  ),
                   onTap: () {
-                    Navigator.of(context).pop(p);
+                    _mostraDialogGrammi(p);
                   },
                 );
               },
