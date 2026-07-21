@@ -13,7 +13,7 @@ class UserData {
     required this.livelloAttivita, required this.obbiettivo,
   });
 
-  // Metodo per creare una copia modificata (utile per lo stato)
+  //Crea una nuova istanza di [UserData] aggiornando solo i campi specificati.
   UserData copyWith({double? peso, TipoObbiettivo? obbiettivo}) {
     return UserData(
       email: email, nome: nome, genere: genere, eta: eta,

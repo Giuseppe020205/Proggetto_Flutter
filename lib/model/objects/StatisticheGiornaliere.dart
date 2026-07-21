@@ -12,7 +12,6 @@ class StatisticheGiornaliere {
     required this.prodottiConsumati,
   });
 
-  // Metodo fondamentale per il pattern MVC: permette di creare una copia aggiornata
   StatisticheGiornaliere copyWith({
     int? calorieTotali,
     int? calorieConsumate,

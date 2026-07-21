@@ -5,7 +5,7 @@ import 'package:diet_app/model/objects/Prodotto.dart';
 import 'package:diet_app/model/objects/UserData.dart';
 import 'package:diet_app/model/objects/Enums.dart';
 
-
+// CLASSE GESTORE DATABASE
 class DatabaseAlimenti {
   // Configurazione connessione
   static final PostgreSQLConnection connection = PostgreSQLConnection(
@@ -16,14 +16,14 @@ class DatabaseAlimenti {
     password: "Postgres123!",
     useSSL: false,
   );
-
+  //CONTROLLO APERTURA CONNESSIONE
   static Future<void> _checkConnection() async {
     if (connection.isClosed) {
       await connection.open();
       log("Connessione al database aperta");
     }
   }
-// Metodo per registrare un nuovo utente nel database PostgreSQL
+// Metodo per registrare un nuovo utente nel database
   static Future<void> registraNuovoUtente({
     required String email,
     required String nome,
@@ -63,12 +63,11 @@ class DatabaseAlimenti {
       rethrow;
     }
   }
-  // Nuovo metodo per recuperare l'utente senza password (usato per il login automatico)
-  static Future<UserData?> getUtenteconEmail(String email) async {
+  // recupero dati utente tramite email
+   static Future<UserData?> getUtenteconEmail(String email) async {
     try {
       await _checkConnection();
 
-      // Selezioniamo tutte le colonne necessarie
       List<List<dynamic>> results = await connection.query(
         'SELECT email, nome, genere, eta, peso, altezza, livello_attivita, obbiettivo FROM utenti WHERE email = @e',
         substitutionValues: {"e": email},
@@ -77,7 +76,7 @@ class DatabaseAlimenti {
       if (results.isNotEmpty) {
         final r = results.first;
 
-        // Mappatura sicura dei dati (gestendo tipi numerici e stringhe)
+        // Mappatura sicura dei dati
         return UserData(
           email: r[0].toString(),
           nome: r[1].toString(),
@@ -99,7 +98,7 @@ class DatabaseAlimenti {
       return null;
     }
   }
-  // Metodo per recuperare i prodotti e trasformarli in oggetti Prodotto
+  // recupero lista Alimenti
   static Future<List<Prodotto>> getProdotti() async {
     await _checkConnection();
     List<List<dynamic>> results = await connection.query('SELECT id, nome, calorie FROM alimenti');
@@ -125,9 +124,9 @@ class DatabaseAlimenti {
         email: r[0],
         nome: r[1],
         genere: r[2] == "M" ? Genere.MASCHIO : Genere.FEMMINA,
-        eta: (r[3] as num).toInt(),             // Forza a Intero
-        peso: (r[4] as num).toDouble(),          // Forza a Decimale
-        altezza: (r[5] as num).toDouble(),       // Forza a Decimale
+        eta: (r[3] as num).toInt(),
+        peso: (r[4] as num).toDouble(),
+        altezza: (r[5] as num).toDouble(),
         livelloAttivita: r[6],
         obbiettivo: TipoObbiettivo.values.firstWhere((e) => e.toString() == r[7]),
       );

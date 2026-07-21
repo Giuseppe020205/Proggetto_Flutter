@@ -17,14 +17,14 @@ void main() async {
     try {
       final utente = await DatabaseAlimenti.getUtenteconEmail(emailSalvata);
       if (utente != null) {
-        // Aggiorniamo il Modello globale così i widget avranno i dati pronti
+
         Model.sharedInstance.updateUserData(utente);
       } else {
-        // Se per qualche motivo l'utente non esiste più nel DB, resettiamo
+
         isLoggedIn = false;
       }
     } catch (e) {
-      isLoggedIn = false; // In caso di errore DB, rimandiamo al login per sicurezza
+      isLoggedIn = false;
     }
   }
 
@@ -78,7 +78,7 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.dark,
         colorSchemeSeed: Colors.deepPurple,
       ),
-      themeMode: _themeMode, // Applica il tema scelto
+      themeMode: _themeMode,
 
       // 2. PASSA I PARAMETRI AL LAYOUT (Il rosso sparirà qui)
       home: widget.inizialmenteloggato

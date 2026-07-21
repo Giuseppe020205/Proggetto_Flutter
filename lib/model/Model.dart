@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// Importiamo solo ciò che riguarda i DATI (Model)
-import 'package:diet_app/model/objects/Enums.dart'; // Controlla se il nome è Enums.dart o AppEnums.dart
+import 'package:diet_app/model/objects/Enums.dart';
 import 'package:diet_app/model/objects/UserData.dart';
 import 'package:diet_app/model/objects/Prodotto.dart';
 import 'package:diet_app/model/objects/StatisticheGiornaliere.dart';
@@ -35,7 +34,7 @@ class Model extends ChangeNotifier {
     // Creiamo una nuova lista aggiungendo il prodotto
     final nuovaLista = List<Prodotto>.from(_statistiche.prodottiConsumati)..add(p);
 
-    // Aggiorniamo l'oggetto statistiche (usa il metodo copyWith del tuo oggetto)
+    // Aggiorniamo l'oggetto statistiche (usa il metodo copyWith nella classe  oggetto)
     _statistiche = _statistiche.copyWith(
       calorieConsumate: _statistiche.calorieConsumate + p.calorie,
       prodottiConsumati: nuovaLista,
@@ -63,7 +62,7 @@ class Model extends ChangeNotifier {
 
     return tdee.toInt();
   }
-  int _passi = 0; // Questa è la variabile "privata"
+  int _passi = 0;
 
   // Getter per leggere i passi dalla UI
   int get passi => _passi;
@@ -80,8 +79,8 @@ class Model extends ChangeNotifier {
         userData!.livelloAttivita = 1.4; // Moderato
       }
     }
-
-    notifyListeners(); // Avvisa l'app di aggiornare il cerchio e la barra
+    // Avvisa l'app di aggiornare il cerchio e la barra
+    notifyListeners();
   }
   String get nomeLivelloAttivita {
     double valore = userData?.livelloAttivita ?? 1.2;
