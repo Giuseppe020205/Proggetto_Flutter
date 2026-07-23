@@ -68,7 +68,7 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: context.supportedLocales,
       locale: context.locale,
 
-      // Configurazione Temi (Material 3)
+      // Configurazione Temi
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.deepPurple,
@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
 
-      // 2. PASSA I PARAMETRI AL LAYOUT (Il rosso sparirà qui)
+      //  PASSA I PARAMETRI AL LAYOUT
       home: widget.inizialmenteloggato
         ? ControllaCalorie(tema: _themeMode,cambiatema : _toggleTheme)
           :RegistrationScreen(tema: _themeMode,cambiatema: _toggleTheme

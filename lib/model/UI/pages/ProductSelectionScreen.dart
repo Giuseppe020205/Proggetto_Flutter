@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:diet_app/model/Model.dart';
 import 'package:diet_app/model/objects/Prodotto.dart';
 
 class SelezioneProdotti extends StatefulWidget {
-  const SelezioneProdotti({super.key});
+  final ThemeMode tema;
+  final Function(bool) cambiatema;
+
+  const SelezioneProdotti({
+    super.key,
+    required this.tema,
+    required this.cambiatema,
+  });
 
   @override
   State<SelezioneProdotti> createState() => _SelezioneProdottiState();
@@ -16,27 +22,42 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
   String _query = "";
   bool _loading = true;
 
-  void _mostraDialogGrammi(Prodotto prodotto) {
+  void _mostraDialogGrammi(Prodotto prodotto, bool scuro, Color colorePrincipale) {
     final TextEditingController controllerGrammi = TextEditingController(text: "100");
+    final Color coloreDialogBackground = scuro ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color coloreTesto = scuro ? Colors.white : Colors.black;
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(prodotto.nome),
+          backgroundColor: coloreDialogBackground,
+          title: Text(prodotto.nome, style: TextStyle(color: coloreTesto, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Inserisci la quantità in grammi:"),
+              Text(
+                "Inserisci la quantità in grammi:".tr(),
+                style: TextStyle(color: scuro ? Colors.grey[300] : Colors.grey[800]),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: controllerGrammi,
                 keyboardType: TextInputType.number,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: "Grammi (g)",
+                style: TextStyle(color: coloreTesto),
+                decoration: InputDecoration(
+                  labelText: "g",
+                  labelStyle: TextStyle(color: scuro ? Colors.grey[400] : Colors.grey[700]),
                   suffixText: "g",
-                  border: OutlineInputBorder(),
+                  suffixStyle: TextStyle(color: colorePrincipale),
+                  filled: true,
+                  fillColor: scuro ? const Color(0xFF2C2C2C) : Colors.grey[100],
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: colorePrincipale, width: 2),
+                  ),
                 ),
               ),
             ],
@@ -44,36 +65,36 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text("Annulla"),
+              child: Text("Annulla", style: TextStyle(color: scuro ? Colors.grey[400] : Colors.grey[600])).tr(),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorePrincipale,
+                foregroundColor: scuro ? Colors.black : Colors.white,
+              ),
               onPressed: () {
                 final double? grammi = double.tryParse(controllerGrammi.text);
                 if (grammi != null && grammi > 0) {
-                  // 1. Calcoliamo le calorie proporzionate ai grammi
                   final int calorieCalcolate = ((prodotto.calorie * grammi) / 100).round();
 
-                  // 2. Creiamo un nuovo Prodotto con i dati aggiornati
                   final prodottoConGrammi = Prodotto(
                     id: prodotto.id,
-                    nome: "${prodotto.nome} (${grammi.toInt()}g)", // es: "Mela (150g)"
+                    nome: "${prodotto.nome} (${grammi.toInt()}g)",
                     calorie: calorieCalcolate,
                   );
 
-                  // 3. Chiudiamo il dialog
                   Navigator.of(dialogContext).pop();
-
-                  // 4. Ritorniamo il Prodotto aggiornato alla schermata precedente
                   Navigator.of(context).pop(prodottoConGrammi);
                 }
               },
-              child: const Text("Aggiungi"),
+              child: const Text("Aggiungi", style: TextStyle(fontWeight: FontWeight.bold)).tr(),
             ),
           ],
         );
       },
     );
   }
+
   @override
   void initState() {
     super.initState();
@@ -204,29 +225,50 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
 
   @override
   Widget build(BuildContext context) {
+    final bool scuro = widget.tema == ThemeMode.dark;
+
+    // Colori adattivi per Tema Chiaro / Scuro
+    final Color colorePrincipale = scuro ? Colors.amber : Colors.deepPurple;
+    final Color coloreSfondoScaffold = scuro ? const Color(0xFF121212) : Colors.grey[100]!;
+    final Color coloreSearchFill = scuro ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color coloreTesto = scuro ? Colors.white : Colors.black;
+    final Color coloreCard = scuro ? const Color(0xFF1E1E1E) : Colors.white;
+
     return Scaffold(
+      backgroundColor: coloreSfondoScaffold,
       appBar: AppBar(
-        title: Text("titolo_selezione").tr(),backgroundColor: Colors.deepPurple,
+        title: Text("titolo_selezione").tr(),
+        backgroundColor: colorePrincipale,
+        foregroundColor: scuro ? Colors.black : Colors.white,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: colorePrincipale))
           : Column(
         children: [
+          // CAMPO DI RICERCA
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               onChanged: _filtraProdotti,
+              style: TextStyle(color: coloreTesto),
               decoration: InputDecoration(
                 labelText: "cerca_alimento".tr(),
-                iconColor: Colors.deepPurple,
+                labelStyle: TextStyle(color: scuro ? Colors.grey[400] : Colors.grey[700]),
                 hintText: "es_mela".tr(),
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: scuro ? Colors.grey[500] : Colors.grey[400]),
+                prefixIcon: Icon(Icons.search, color: colorePrincipale),
+                filled: true,
+                fillColor: coloreSearchFill,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide(color: colorePrincipale, width: 2),
+                ),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.yellow),
+                  icon: Icon(Icons.clear, color: colorePrincipale),
                   onPressed: () {
                     FocusScope.of(context).unfocus();
                     _filtraProdotti("");
@@ -236,36 +278,51 @@ class _SelezioneProdottiState extends State<SelezioneProdotti> {
               ),
             ),
           ),
+
+          // LISTA PRODOTTI
           Expanded(
             child: _prodottiFiltrati.isEmpty
                 ? Center(
-              child: Text("nessun_alimento_trovato".tr(), selectionColor: Colors.red),
+              child: Text(
+                "nessun_alimento_trovato".tr(),
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
             )
                 : ListView.builder(
               itemCount: _prodottiFiltrati.length,
               itemBuilder: (context, index) {
                 final p = _prodottiFiltrati[index];
-                return ListTile(
-                  title: Text(
-                    p.nome,
-                    // Testo dell'alimento colorato di giallo (utilizzato un ambra scuro per contrasto)
-                    style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                return Card(
+                  color: coloreCard,
+                  elevation: scuro ? 1 : 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  subtitle: Text(
-                    "${p.calorie} ${"kcal".tr()} / 100g",
-                    // Sottotitolo delle calorie colorato di giallo
-                    style: TextStyle(color: Colors.amber[600]),
-                  ),
-                  // Icona di aggiunta modificata in colore verde
-                  trailing: IconButton(
-                    icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-                    onPressed: () {
-                      _mostraDialogGrammi(p);
+                  child: ListTile(
+                    title: Text(
+                      p.nome,
+                      style: TextStyle(
+                        color: scuro ? Colors.amber : Colors.deepPurple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "${p.calorie} ${"kcal".tr()} / 100g",
+                      style: TextStyle(
+                        color: scuro ? Colors.amber[300] : Colors.deepPurple[300],
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                      onPressed: () {
+                        _mostraDialogGrammi(p, scuro, colorePrincipale);
+                      },
+                    ),
+                    onTap: () {
+                      _mostraDialogGrammi(p, scuro, colorePrincipale);
                     },
                   ),
-                  onTap: () {
-                    _mostraDialogGrammi(p);
-                  },
                 );
               },
             ),

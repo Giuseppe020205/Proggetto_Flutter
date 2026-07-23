@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,7 +6,6 @@ import 'package:diet_app/model/objects/Prodotto.dart';
 import 'package:diet_app/model/UI/pages/ProductSelectionScreen.dart';
 import 'package:diet_app/model/UI/pages/RegistrationScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:diet_app/model/Model.dart';
 
 class ControllaCalorie extends StatefulWidget {
   final ThemeMode tema;
@@ -26,12 +24,16 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
       PageRouteBuilder(
         opaque: false,
         transitionDuration: const Duration(milliseconds: 700),
-        pageBuilder: (context, _, __) => const SelezioneProdotti(),
+        pageBuilder: (context, _, __) => SelezioneProdotti(
+          tema: widget.tema,
+          cambiatema: widget.cambiatema,
+        ),
       ),
     );
 
     if (risultato != null && risultato is Prodotto) {
       Model.sharedInstance.aggiungiProdotto(risultato);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("${risultato.nome} ${"aggiunto".tr()}"),
@@ -40,37 +42,24 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
       );
     }
   }
-  void aggiungiAlimento(BuildContext context){
-    final model=Provider.of<Model>(context,listen: false);
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-          builder: (context)  => SelezioneProdotti(),
-      ),
-    );
-  }
 
   void effettuaLogout(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("logout_titolo".tr()),
+          title: Text("esci".tr()),
           content: Text("logout_messaggio".tr()),
           actions: [
-            // TASTO PER TORNARE INDIETRO
             TextButton(
-              onPressed: () => Navigator.pop(context), // Chiude solo la casella
+              onPressed: () => Navigator.pop(context),
               child: Text("indietro".tr(), style: const TextStyle(color: Colors.grey)),
             ),
-            // TASTO PER USCIRE DEFINITIVAMENTE
             TextButton(
               onPressed: () async {
-
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
-                // 2.NAVIGAZIONE DI SICUREZZA
                 if (!context.mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
@@ -93,43 +82,66 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Model>(context);
+    final isDark = widget.tema == ThemeMode.dark;
 
-    // Calcolo dei dati per l'indicatore tramite la funzione nel Model
+    // Colori principali condizionali: Viola in Light Mode, Ambra in Dark Mode
+    final Color colorePrincipale = isDark ? Colors.amber : Colors.deepPurple;
+    final Color coloreTestoPrincipale = isDark ? Colors.amber : Colors.deepPurple;
+    final Color coloreSfondoScaffold = isDark ? const Color(0xFF121212) : Colors.grey[200]!;
+    final Color coloreCard = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color coloreTestoTitoli = isDark ? Colors.white : Colors.black;
+
     final int obiettivo = model.calcolaRapportoCalorico(model.userData);
     final int consumate = model.statistiche.calorieConsumate;
     final int rimanenti = obiettivo - consumate;
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: coloreSfondoScaffold,
 
       // MENU LATERALE DESTRO
       endDrawer: Drawer(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         child: Column(
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.deepPurple),
+              decoration: BoxDecoration(color: colorePrincipale),
               child: Center(
-                child: Text("impostazioni".tr(),
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "impostazioni".tr(),
+                  style: TextStyle(
+                    color: isDark ? Colors.black : Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             // CAMBIO DI LINGUA
             ListTile(
-              leading: const Icon(Icons.language,color: Colors.deepPurple,),
-              title: Text(context.locale.languageCode == 'it' ? "Italiano" : "English"),
+              leading: Icon(Icons.language, color: colorePrincipale),
+              title: Text(
+                context.locale.languageCode == 'it' ? "Italiano" : "English",
+                style: TextStyle(color: coloreTestoTitoli),
+              ),
               onTap: () {
                 context.setLocale(context.locale.languageCode == 'it' ? const Locale('en') : const Locale('it'));
                 Navigator.pop(context);
               },
             ),
-            // CAMBIO TEMA
+            // CAMBIO TEMA (SOLUZIONE A)
             SwitchListTile(
-              secondary: Icon( widget.tema == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
-                color: Colors.deepPurple,
+              secondary: Icon(
+                isDark ? Icons.dark_mode : Icons.light_mode,
+                color: colorePrincipale,
               ),
-              title: Text("tema_scuro".tr()),
-              value: widget.tema == ThemeMode.dark,
-              onChanged: (val) => widget.cambiatema(val),
+              title: Text("tema_scuro".tr(), style: TextStyle(color: coloreTestoTitoli)),
+              value: isDark,
+              onChanged: (val) {
+                // 1. Invocazione callback globale del tema
+                widget.cambiatema(val);
+                // 2. Forza il refresh grafico immediato della schermata corrente
+                setState(() {});
+              },
             ),
             const Spacer(),
             const Divider(),
@@ -149,13 +161,13 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
 
       body: Column(
         children: [
-
+          // HEADER SUPERIORE
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 45, bottom: 20),
-            decoration: const BoxDecoration(
-              color: Colors.deepPurple,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: colorePrincipale,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
               ),
@@ -165,10 +177,10 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                 Center(
                   child: Text(
                     "titolo".tr(),
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold
+                    style: TextStyle(
+                      color: isDark ? Colors.black : Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -179,7 +191,7 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                     padding: const EdgeInsets.only(right: 10),
                     child: Builder(
                       builder: (context) => IconButton(
-                        icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+                        icon: Icon(Icons.menu, color: isDark ? Colors.black : Colors.white, size: 26),
                         onPressed: () => Scaffold.of(context).openEndDrawer(),
                       ),
                     ),
@@ -197,24 +209,32 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
               IndicatoreCalorieAnimato(
                 obiettivo: obiettivo,
                 consumate: consumate,
+                isDark: isDark,
               ),
               const SizedBox(height: 20),
-              Text("calorie_rimanenti".tr(),
-                  style: const TextStyle(color: Colors.deepPurple, fontSize: 16)),
-              Text("$rimanenti",
-                  style: const TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                "calorie_rimanenti".tr(),
+                style: TextStyle(color: coloreTestoPrincipale, fontSize: 16),
+              ),
+              Text(
+                "$rimanenti",
+                style: TextStyle(
+                  color: coloreTestoPrincipale,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
 
           const SizedBox(height: 15),
-          //  WIDGET CONTAPASSI CON LIVELLO ATTIVITÀ
+
+          // WIDGET CONTAPASSI CON LIVELLO ATTIVITÀ
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Card(
-              elevation: 3,
+              color: coloreCard,
+              elevation: isDark ? 1 : 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -226,15 +246,22 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.directions_walk, color: Colors.deepPurple),
+                            Icon(Icons.directions_walk, color: colorePrincipale),
                             const SizedBox(width: 8),
-                            Text("passi".tr(),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(
+                              "passi".tr(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: coloreTestoTitoli,
+                              ),
+                            ),
                           ],
                         ),
-                        // VISUALIZZA I PASSI ATTUALI
-                        Text("${model.passi} ",
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                        Text(
+                          "${model.passi} ",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: colorePrincipale),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 15),
@@ -243,8 +270,8 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
                         value: (model.passi / 10000).clamp(0.0, 1.0),
-                        backgroundColor: Colors.grey[200],
-                        color: Colors.deepPurple,
+                        backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                        color: colorePrincipale,
                         minHeight: 10,
                       ),
                     ),
@@ -253,20 +280,22 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("livello_attivita".tr(),
-                            style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                        Text(
+                          "livello_attivita".tr(),
+                          style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 14),
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.deepPurple.withOpacity(0.1),
+                            color: colorePrincipale.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            "${model.nomeLivelloAttivita }",
-                            style: const TextStyle(
-                                color: Colors.deepPurple,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14
+                            "${model.nomeLivelloAttivita}",
+                            style: TextStyle(
+                              color: colorePrincipale,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -288,17 +317,21 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
               itemBuilder: (context, index) {
                 final p = model.prodottiConsumati[index];
                 return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    child: ListTile(
-                      leading: const Icon(Icons.fastfood, color: Colors.purple),
-                      title: Text(p.nome,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      trailing: Text("${p.calorie} kcal",
-                          style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                    )
+                  color: coloreCard,
+                  elevation: isDark ? 1 : 2,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading: Icon(Icons.fastfood, color: isDark ? Colors.amber : Colors.purple),
+                    title: Text(
+                      p.nome,
+                      style: TextStyle(fontWeight: FontWeight.bold, color: coloreTestoTitoli),
+                    ),
+                    trailing:  Text(
+                      "${p.calorie} kcal",
+                      style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 );
               },
             ),
@@ -308,17 +341,17 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: () => apriSelezioneProdotti(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: Text("aggiungi_nuovo".tr()),
-                )
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: () => apriSelezioneProdotti(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorePrincipale,
+                  foregroundColor: isDark ? Colors.black : Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                ),
+                child: Text("aggiungi_nuovo".tr()),
+              ),
             ),
           ),
         ],
@@ -327,17 +360,21 @@ class _ControllaCalorieState extends State<ControllaCalorie> {
   }
 }
 
-
 class IndicatoreCalorieAnimato extends StatefulWidget {
   final int obiettivo;
   final int consumate;
+  final bool isDark;
 
-  const IndicatoreCalorieAnimato({super.key, required this.obiettivo, required this.consumate});
+  const IndicatoreCalorieAnimato({
+    super.key,
+    required this.obiettivo,
+    required this.consumate,
+    required this.isDark,
+  });
 
   @override
   State<IndicatoreCalorieAnimato> createState() => _IndicatoreCalorieAnimatoState();
 }
-
 
 class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> with TickerProviderStateMixin {
   late AnimationController _controller;
@@ -346,13 +383,11 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
   @override
   void initState() {
     super.initState();
-    // INIZIALIZAZIONE DEL CONTROLLER CON DURATA
     _controller = AnimationController(
-      vsync: this, // [cite: 12]
+      vsync: this,
       duration: const Duration(milliseconds: 700),
     );
 
-    // DEFINIZIONE DELL' ANIMAZIONE
     _progressoAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
@@ -382,6 +417,8 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
 
   @override
   Widget build(BuildContext context) {
+    final Color coloreBordo = widget.isDark ? Colors.amber : Colors.deepPurple;
+
     return AnimatedBuilder(
       animation: _progressoAnimation,
       builder: (context, child) {
@@ -395,6 +432,7 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
         } else {
           coloreIndicatore = Colors.green;
         }
+
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -405,7 +443,7 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
               child: CircularProgressIndicator(
                 value: 1.0,
                 strokeWidth: 12,
-                color: Colors.deepPurple,
+                color: coloreBordo,
               ),
             ),
             SizedBox(
@@ -421,16 +459,15 @@ class _IndicatoreCalorieAnimatoState extends State<IndicatoreCalorieAnimato> wit
             // PERCENTUALE CENTRALE
             Text(
               "${(valore * 100).toInt()}%",
-              style: const TextStyle(
-                  color: Colors.deepPurple,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold
+              style: TextStyle(
+                color: coloreBordo,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         );
       },
-
     );
   }
 }

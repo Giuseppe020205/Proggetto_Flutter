@@ -59,7 +59,7 @@ class DatabaseAlimenti {
       log("Database: Utente $email registrato con successo.");
     } catch (e) {
       log("Database Error (Registrazione): $e");
-      // Rilanciamo l'errore per gestirlo nella UI (mostrare lo SnackBar)
+
       rethrow;
     }
   }
@@ -80,7 +80,6 @@ class DatabaseAlimenti {
         return UserData(
           email: r[0].toString(),
           nome: r[1].toString(),
-          // Se nel DB è salvato come "MASCHIO" o "FEMMINA" (usando .name)
           genere: r[2].toString() == "MASCHIO" ? Genere.MASCHIO : Genere.FEMMINA,
           eta: (r[3] as num).toInt(),
           peso: double.tryParse(r[4].toString()) ?? 0.0,
@@ -92,7 +91,8 @@ class DatabaseAlimenti {
           ),
         );
       }
-      return null; // Utente non trovato
+      // Utente non trovato
+      return null;
     } catch (e) {
       log("Errore Database (getUtenteByEmail): $e");
       return null;
